@@ -77,12 +77,24 @@ class HumanInputManager:
 
 class AsyncEngine:
     def __init__(self, cpu_workers: int = None, thread_workers: int = 10):
+        import threading
         print("[AsyncEngine] 初始化引擎...")
         cpu_workers = cpu_workers or os.cpu_count() or 4
         self.process_pool = ProcessPoolExecutor(max_workers=cpu_workers)
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_workers)
         self.human_input = HumanInputManager()
         self._active_tasks: Set[asyncio.Task] = set()
+        # ── LLM 速率控制 (按 source 分组) ──
+        self.llm_delay: float = 0.0
+        self._throttle_locks: Dict[str, asyncio.Lock] = {}
+        self._last_call_time: Dict[str, float] = {}
+        self._throttle_meta_lock = threading.Lock()
+        self._active_tasks: Set[asyncio.Task] = set()
+        # ── LLM 速率控制 (按 source 分组) ──
+        self.llm_delay: float = 0.0
+        self._throttle_locks: Dict[str, asyncio.Lock] = {}
+        self._last_call_time: Dict[str, float] = {}
+        self._throttle_meta_lock = threading.Lock()
         
         
         
@@ -196,6 +208,31 @@ class AsyncEngine:
         for idx, val in finished_results.items():
             final[idx] = val
         return final
+
+    async def throttle_llm(self, resource: str, delay: float = None):
+        """
+        确保对同一 resource 的连续调用至少间隔 delay 秒。
+        若 delay 为 None，使用 self.llm_delay。delay <= 0 则不限流。
+        """
+        if delay is None:
+            delay = self.llm_delay
+        if delay <= 0:
+            return
+
+        # 获取或创建 resource 专用锁
+        with self._throttle_meta_lock:
+            if resource not in self._throttle_locks:
+                self._throttle_locks[resource] = asyncio.Lock()
+            lock = self._throttle_locks[resource]
+
+        async with lock:
+            loop = asyncio.get_running_loop()
+            now = loop.time()
+            last = self._last_call_time.get(resource, 0.0)
+            wait_time = delay - (now - last)
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+            self._last_call_time[resource] = loop.time()
 
     async def shutdown(self):
         for task in list(self._active_tasks):
