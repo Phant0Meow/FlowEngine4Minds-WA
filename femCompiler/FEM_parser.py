@@ -1491,43 +1491,4 @@ def parse_script(text: str, base_dir: str = ".") -> Script:
         elif isinstance(owner_val, list):
             script.meta['owner'] = [str(x) for x in owner_val]
 
-    # ── Delay 注入：在连续 AI Action 之间插入等待节点 ──
-    delay_seconds = script.meta.get('delay', 0)
-    print(f"[parser] ⏱️ 读取 meta.delay = {delay_seconds!r} (type={type(delay_seconds).__name__})")
-    if isinstance(delay_seconds, str):
-        try:
-            delay_seconds = int(delay_seconds)
-        except (ValueError, TypeError):
-            print(f"[parser] ⚠️ meta.delay 不是有效整数: {delay_seconds!r}")
-            delay_seconds = 0
-    if delay_seconds > 0:
-        print(f"[parser] ⏱️ meta.delay = {delay_seconds}，开始注入 delay 节点...")
-
-        # 主 flow
-        if script.flow:
-            print(f"[parser] ⏱️ 处理主 flow: 节点数={len(script.flow.nodes)}, 边数={len(script.flow.edges)}")
-            inject_delay_nodes(script.flow, script.actions, delay_seconds)
-        else:
-            print(f"[parser] ⏱️ 主 flow 为空，跳过")
-
-        # 递归注入所有模块的 flow（含嵌套子模块）
-        def _inject_all_modules(modules: Dict[str, ModuleDef], global_actions: Dict[str, ActionDef]):
-            for mod_name, mod in modules.items():
-                print(f"[parser] ⏱️ 处理模块: {mod_name}, 局部 actions={list(mod.actions.keys())}")
-                merged_actions = dict(global_actions)
-                merged_actions.update(mod.actions)
-                if mod.flow:
-                    print(f"[parser] ⏱️ 模块 {mod_name} flow: 节点数={len(mod.flow.nodes)}, 边数={len(mod.flow.edges)}")
-                    inject_delay_nodes(mod.flow, merged_actions, delay_seconds)
-                else:
-                    print(f"[parser] ⏱️ 模块 {mod_name} 无 flow，跳过")
-                if mod.modules:
-                    print(f"[parser] ⏱️ 模块 {mod_name} 有 {len(mod.modules)} 个嵌套子模块，递归...")
-                    _inject_all_modules(mod.modules, merged_actions)
-
-        _inject_all_modules(script.modules, script.actions)
-        print(f"[parser] ⏱️ delay 注入全部完成。")
-    else:
-        print(f"[parser] ⏱️ delay <= 0 或未设置，跳过注入")
-
     return script
