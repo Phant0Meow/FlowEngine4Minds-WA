@@ -15,7 +15,7 @@
 **Traditional**:
 Change one agent workflow — dig through 5 files, spend 2 hours tweaking, pray it doesn't crash.
 
-**FemWA**:
+**Fem-WA**:
 Change the harness flow — only a few lines of code, 2 minutes.
 
 ---
@@ -25,7 +25,7 @@ Change the harness flow — only a few lines of code, 2 minutes.
 **Traditional**:
 You'd need to patch the existing agent memory system, add a new "pet" character, manually manage its memory and interaction context with the owner/partner, hardcode the flow — and if you ever want to adopt a dog later, you'd have to refactor all over again.
 
-**FemWA**:
+**Fem-WA**:
 I already adopted a cat for my AI agent. Using Fem, the cat arrived in 3 minutes.
 
 ---
@@ -35,10 +35,10 @@ I already adopted a cat for my AI agent. Using Fem, the cat arrived in 3 minutes
 **Traditional**:
 Hand-code stage management, end-condition checks, message distribution, session management, multi-agent context isolation, and speech concurrency control from scratch. Hundreds of lines of backend glue code at minimum, an entire afternoon of debugging, and easy context bleed. Once the logic gets complex, bugs pop up everywhere — it simply won't run without at least a thousand lines of code.
 
-**FemWA**:
+**Fem-WA**:
 Zero-code drag-and-drop on the web interface + 150 lines of Python supplement. Genuinely playable. I've already played several rounds with them (see `user_data/projects/werewolf_game/`).
 
-**Still FemWA**:
+**Still Fem-WA**:
 Even if you skip the web drag-and-drop and hand-code everything, Fem code only needs about 200–300 lines to run the entire Werewolf flow described above (and that includes prompt line count).
 Perspective isolation needs just one line: `scope: [@God] + wolfpack`. Concurrent voting needs just one line: `par @player in allplayers:`.
 
@@ -48,12 +48,12 @@ Perspective isolation needs just one line: `scope: [@God] + wolfpack`. Concurren
 
 ---
 
-## Why choose FemWA?
+## Why choose Fem-WA?
 
 **You might say**:
 Aren't there plenty of solutions out there now for building multi-agent workflows?
 
-**FemWA**:
+**Fem-WA**:
 Some solutions are overly complex, with steep learning curves. Fem's syntax is simple and intuitive — "scripts" are easy to write and easy to read.
 
 ---
@@ -61,7 +61,7 @@ Some solutions are overly complex, with steep learning curves. Fem's syntax is s
 **You might say**:
 Even if it's simple, I don't want to learn anything new.
 
-**FemWA**:
+**Fem-WA**:
 You don't have to learn.
 Fem has a zero-code web interface for generating workflows. For example, if you want several AI group chats, just drag and drop — done in three minutes.
 
@@ -70,7 +70,7 @@ Fem has a zero-code web interface for generating workflows. For example, if you 
 **You might say**:
 There are already zero-code drag-and-drop workflow platforms, right?
 
-**FemWA**:
+**Fem-WA**:
 - But zero-code platforms often have limited extensibility.
   Fem supports `for`, `par`, and various other syntax, plus external Python modules — you can write highly complex functionality if you want.
   It also has native human nodes, making it very natural to arrange workflows combining "human + AI + programs."
@@ -83,7 +83,7 @@ There are already zero-code drag-and-drop workflow platforms, right?
 **You might say**:
 I specialize in writing Agent Harnesses, I don't need this kind of flowchart stuff.
 
-**FemWA**:
+**Fem-WA**:
 Aha, how about trying Fem to quickly validate your Agent Harness flow designs? When inspiration strikes, build it with Fem in 15 minutes and run it to see how it performs~
 
 ---
