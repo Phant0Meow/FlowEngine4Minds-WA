@@ -827,16 +827,42 @@ def build_indent_tree(text: str) -> List[IndentBlock]:
 
 # ---- Token 解析器 ----
 def tokenize_chain(line: str) -> List[dict]:
-    """解析一条 -> 链式行，支持 (if ...) 条件提取"""
+    """解析一条 -> 链式行，支持嵌套括号的条件表达式"""
     line = re.sub(r'(?<!\s)--(?!\s)', '->', line)
     content = re.sub(r'^->\s*', '', line)
 
-    # 保护 if (...) 内部不被 -> 切割
     conds = []
-    def save_cond(m):
-        conds.append(m.group(1).strip())
-        return f'__COND_{len(conds)-1}__'
-    protected = re.sub(r'\bif\s*\((.+?)\)', save_cond, content)
+    # 使用 Python 编译器安全地提取 if (...) 中的完整表达式
+    def extract_conditions(s):
+        parts = []
+        i = 0
+        while i < len(s):
+            if s.startswith('if', i):
+                j = i + 2
+                while j < len(s) and s[j].isspace():
+                    j += 1
+                if j < len(s) and s[j] == '(':
+                    # 找到匹配的右括号
+                    start = j
+                    depth = 1
+                    j += 1
+                    while j < len(s) and depth > 0:
+                        if s[j] == '(':
+                            depth += 1
+                        elif s[j] == ')':
+                            depth -= 1
+                        j += 1
+                    if depth == 0:
+                        expr = s[start+1:j-1].strip()
+                        conds.append(expr)
+                        parts.append(f'__COND_{len(conds)-1}__')
+                        i = j
+                        continue
+            parts.append(s[i])
+            i += 1
+        return ''.join(parts)
+
+    protected = extract_conditions(content)
 
     parts = re.split(r'\s*->\s*', protected)
     parts = [p.strip() for p in parts if p.strip()]
@@ -852,7 +878,6 @@ def tokenize_chain(line: str) -> List[dict]:
         elif part == '[BREAK]':
             tokens.append({'type': 'node', 'name': '[BREAK]', 'ntype': 'break'})
         else:
-            # 禁止控制关键字混入普通链
             if part in ('for', 'par', 'fork', 'join', 'to'):
                 raise SyntaxError(f"控制关键字 '{part}' 不能出现在普通链中")
             tokens.append({'type': 'node', 'name': part, 'ntype': 'action'})
